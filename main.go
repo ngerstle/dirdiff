@@ -4,6 +4,7 @@ import "fmt"
 import "os"
 import "errors"
 import "sort"
+import "strings"
 
 type dirtree struct {
 	path     string      // string path
@@ -12,18 +13,26 @@ type dirtree struct {
 	contents []dirtree   //Sorted contents of directory, empty if file
 }
 
-func (dt *dirtree) pString(depth int) string {
-	//output := fmt.Sprintf(fmt.Sprintf("|%%s|%%-%d%%si\n", depth), dt.info.Mode(), dt.info.Name())
-	output := fmt.Sprintf("|%s|%s\n", dt.info.Mode(), dt.info.Name())
+func (dt *dirtree) dString(depth, dsize int) string {
+	//TODO convert depth/dsize to int[] for more control over |, add bool for last in dir..
+	drune := map[bool]string{false: "▸", true: "┬"}[(dt.info.IsDir())]
+	output := fmt.Sprintf("│%s┃%s%s\n", dt.info.Mode(), strings.Repeat(" ", depth)+"├"+strings.Repeat("─", dsize)+drune, dt.info.Name())
 	for i := 0; i < len(dt.contents); i++ {
-		output += dt.contents[i].pString(depth + 1)
+		output += dt.contents[i].dString(depth+1+dsize, len(dt.info.Name()))
 	}
-	//"|mode|-*depth name"
-	//output = fmt.sprintf()
+	return output
+}
+func (dt *dirtree) pString(depth int) string {
+	drune := map[bool]string{false: "├─>", true: "├─┬"}[(dt.info.IsDir())]
+	output := fmt.Sprintf("|%s|%s%s\n", dt.info.Mode(), strings.Repeat(" ", depth)+drune, dt.info.Name())
+	for i := 0; i < len(dt.contents); i++ {
+		output += dt.contents[i].pString(depth + len(dt.info.Name()) + 1)
+	}
 	return output
 }
 func (dt *dirtree) String() string {
-	output := dt.pString(0)
+	output := dt.dString(0, 0)
+	//output := dt.pString(0)
 	return output
 }
 
@@ -74,9 +83,10 @@ func treediff(tree1, tree2 dirtree) (string, error) {
 }
 
 func main() {
-
 	//add strict flag (hash instead of size)
 	//add links flag (follow/don't follow links)
+	//add ignore hidden (.filename) files (os compat?)
+	//add ignore/exclude options
 
 	fmt.Printf("Hellow\n")
 	fmt.Println("All args:")
