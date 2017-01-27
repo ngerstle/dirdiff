@@ -22,17 +22,34 @@ func (dt *dirtree) dString(depth, dsize int) string {
 	}
 	return output
 }
-func (dt *dirtree) pString(depth int) string {
-	drune := map[bool]string{false: "├─>", true: "├─┬"}[(dt.info.IsDir())]
-	output := fmt.Sprintf("|%s|%s%s\n", dt.info.Mode(), strings.Repeat(" ", depth)+drune, dt.info.Name())
+func (dt *dirtree) cString(depth []int, last bool) string {
+	//TODO convert depth/dsize to int[] for more control over |, add bool for last in dir..
+	drune := map[bool]string{false: "▸", true: "┬"}[(dt.info.IsDir())]
+	prune := map[bool]string{false: "├", true: "└"}[last]
+	spacing := ""
+	for i := 0; i < len(depth)-1; i++ {
+		spacing += "│" + strings.Repeat(" ", depth[i])
+	}
+	output := fmt.Sprintf("│%s┃%s%s%s\n", dt.info.Mode(), spacing, prune+strings.Repeat("─", depth[len(depth)-1])+drune, dt.info.Name())
+	ld := len(depth)
+	if last && (ld > 1) {
+		ndepth := make([]int, (ld - 1))
+		copy(ndepth, depth)
+		ndepth[ld-2] += depth[ld-1]
+		depth = ndepth
+	}
 	for i := 0; i < len(dt.contents); i++ {
-		output += dt.contents[i].pString(depth + len(dt.info.Name()) + 1)
+		//output += dt.contents[i].dString(depth+1+dsize, len(dt.info.Name()))
+		ddepths := make([]int, (ld + 1))
+		copy(ddepths, depth)
+		ddepths[len(ddepths)-1] = len(dt.info.Name())
+		output += dt.contents[i].cString(ddepths, (i == len(dt.contents)-1))
 	}
 	return output
 }
 func (dt *dirtree) String() string {
-	output := dt.dString(0, 0)
-	//output := dt.pString(0)
+	//output := dt.dString(0, 0)
+	output := dt.cString([]int{0}, false)
 	return output
 }
 
