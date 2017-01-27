@@ -3,9 +3,9 @@ package main
 import "fmt"
 import "os"
 import "errors"
+import "sort"
 
 type dirtree struct {
-	//fd       File
 	path     string      // string path
 	info     os.FileInfo //
 	hash     string      // hash of file if file under strict mode
@@ -13,7 +13,12 @@ type dirtree struct {
 }
 
 func (dt *dirtree) pString(depth int) string {
-	output := ""
+	//output := fmt.Sprintf(fmt.Sprintf("|%%s|%%-%d%%si\n", depth), dt.info.Mode(), dt.info.Name())
+	output := fmt.Sprintf("|%s|%s\n", dt.info.Mode(), dt.info.Name())
+	for i := 0; i < len(dt.contents); i++ {
+		output += dt.contents[i].pString(depth + 1)
+	}
+	//"|mode|-*depth name"
 	//output = fmt.sprintf()
 	return output
 }
@@ -46,9 +51,9 @@ func getDirTree(rootdirname string) (dirtree, error) {
 		if err != nil {
 			panic("can't close file")
 		}
-		//TODO sort rawcontents by name
+		sort.Strings(rawcontents)
 		for i := 0; i < len(rawcontents); i++ {
-			filepath := rootdirname + rawcontents[i] //TODO fix
+			filepath := rootdirname + string(os.PathSeparator) + rawcontents[i]
 			newnode, err := getDirTree(filepath)
 			if err == nil {
 				contents = append(contents, newnode)
@@ -86,12 +91,19 @@ func main() {
 	if err1 != nil {
 		panic("dir1 panic")
 	}
-	tree2, err2 := getDirTree(dir1)
+	tree2, err2 := getDirTree(dir2)
 	if err2 != nil {
 		panic("dir2 panic")
 	}
-	fmt.Println(tree1)
-	fmt.Println(tree2)
+	fmt.Println()
+	fmt.Println()
+	fmt.Println()
+	fmt.Println(tree1.String())
+	fmt.Println(tree2.String())
+	fmt.Println()
+	fmt.Println()
+	fmt.Println()
+	fmt.Println()
 	difftree, err3 := treediff(tree1, tree2)
 	if err3 != nil {
 		panic("err3 panic")
