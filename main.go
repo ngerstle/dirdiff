@@ -27,11 +27,12 @@ func (dt *dirtree) cString(depth []int, last bool) string {
 	drune := map[bool]string{false: "▸", true: "┬"}[(dt.info.IsDir())]
 	prune := map[bool]string{false: "├", true: "└"}[last]
 	spacing := ""
-	for i := 0; i < len(depth)-1; i++ {
+	ld := len(depth)
+	for i := 0; i < len(depth)-2; i++ {
 		spacing += "│" + strings.Repeat(" ", depth[i])
 	}
+	spacing += strings.Repeat(" ", depth[ld-1])
 	output := fmt.Sprintf("│%s┃%s%s%s\n", dt.info.Mode(), spacing, prune+strings.Repeat("─", depth[len(depth)-1])+drune, dt.info.Name())
-	ld := len(depth)
 	if last && (ld > 1) {
 		ndepth := make([]int, (ld - 1))
 		copy(ndepth, depth)
