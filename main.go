@@ -31,19 +31,20 @@ func (dt *dirtree) cString(depth []int, last bool) string {
 	for i := 0; i < len(depth)-2; i++ {
 		spacing += "│" + strings.Repeat(" ", depth[i])
 	}
-	spacing += strings.Repeat(" ", depth[ld-1])
-	output := fmt.Sprintf("│%s┃%s%s%s\n", dt.info.Mode(), spacing, prune+strings.Repeat("─", depth[len(depth)-1])+drune, dt.info.Name())
+	//spacing += strings.Repeat(" ", depth[ld-1])
+	output := fmt.Sprintf("│%s┃%s%s%s\n", dt.info.Mode(), spacing, prune+strings.Repeat("─", depth[ld-1]+1)+drune, dt.info.Name())
 	if last && (ld > 1) {
 		ndepth := make([]int, (ld - 1))
 		copy(ndepth, depth)
-		ndepth[ld-2] += depth[ld-1]
+		ndepth[ld-2] += depth[ld-1] + 1
 		depth = ndepth
+		ld = len(depth)
 	}
 	for i := 0; i < len(dt.contents); i++ {
 		//output += dt.contents[i].dString(depth+1+dsize, len(dt.info.Name()))
 		ddepths := make([]int, (ld + 1))
 		copy(ddepths, depth)
-		ddepths[len(ddepths)-1] = len(dt.info.Name())
+		ddepths[ld-1] = len(dt.info.Name())
 		output += dt.contents[i].cString(ddepths, (i == len(dt.contents)-1))
 	}
 	return output
