@@ -13,12 +13,23 @@ type dirtree struct {
 	contents []dirtree   //Sorted contents of directory, empty if file
 }
 
-func (dt *dirtree) dString(depth, dsize int) string {
+func (dt *dirtree) dString(depth []int, last bool) string {
 	//TODO convert depth/dsize to int[] for more control over |, add bool for last in dir..
 	drune := map[bool]string{false: "▸", true: "┬"}[(dt.info.IsDir())]
-	output := fmt.Sprintf("│%s┃%s%s\n", dt.info.Mode(), strings.Repeat(" ", depth)+"├"+strings.Repeat("─", dsize)+drune, dt.info.Name())
+	prune := map[bool]string{false: "├", true: "└"}[last]
+	prespacing := ""
+	ld := len(depth)
+	for i := 0; i < ld; i++ {
+		prespacing += "│" + strings.Repeat(" ", depth[i]+1)
+	}
+	postspacing := prune + strings.Repeat("─", 0) + drune
+	output := fmt.Sprintf("│%s┃%s%s%s\n", dt.info.Mode(), prespacing, postspacing, dt.info.Name())
 	for i := 0; i < len(dt.contents); i++ {
-		output += dt.contents[i].dString(depth+1+dsize, len(dt.info.Name()))
+		//output += dt.contents[i].dString(depth+1+dsize, len(dt.info.Name()))
+		ddepths := make([]int, (ld + 1))
+		copy(ddepths, depth)
+		ddepths[len(ddepths)-1] = len(dt.info.Name())
+		output += dt.contents[i].cString(ddepths, (i == len(dt.contents)-1))
 	}
 	return output
 }
@@ -50,8 +61,8 @@ func (dt *dirtree) cString(depth []int, last bool) string {
 	return output
 }
 func (dt *dirtree) String() string {
-	//output := dt.dString(0, 0)
-	output := dt.cString([]int{0}, false)
+	//output := dt.cString([]int{0}, false)
+	output := dt.dString([]int{}, false)
 	return output
 }
 
